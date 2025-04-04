@@ -9,4 +9,3 @@ spec:
       port: 80
   selector:
     run: nginx
-    run: nginx1
