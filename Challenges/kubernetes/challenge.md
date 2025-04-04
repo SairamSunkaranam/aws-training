@@ -156,6 +156,7 @@ Note: Make sure you have installed Docker Desktop.
 
     Update the ReplicaSet YAML to use a new version of NGINX, e.g., nginx:1.21:
 containers:
+
         - name: nginx
         image: nginx:1.21
 
@@ -207,5 +208,5 @@ containers:
         kubectl apply -f nginx-deployment.yaml
 
     Check the Deployment:
-    
+
         kubectl get deployments
