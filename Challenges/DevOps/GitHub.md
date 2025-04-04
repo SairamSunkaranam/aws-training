@@ -48,7 +48,7 @@
 
 # Step 3: Clone the Repository
 
-    Using GitHub Desktop
+    Using GitHub Desktop:
 
     Open GitHub Desktop: If it's not already open, launch GitHub Desktop.
 
@@ -70,7 +70,7 @@
 
 # Step 4: Create a Feature Branch
 
-    Using GitHub Desktop
+    Using GitHub Desktop:
 
     Create a New Branch:
 
@@ -80,7 +80,7 @@
 
         Enter a name for your new branch (e.g., feature-branch) and click Create Branch.
 
-    Using Git CLI
+    Using Git CLI:
 
     In the terminal, navigate to the cloned repository's directory:
 
@@ -92,7 +92,7 @@
 
 # Step 5: Upload or Create a File in the Feature Branch
 
-    Using GitHub Desktop
+    Using GitHub Desktop:
 
     Add a File:
 
@@ -106,7 +106,7 @@
 
         Click Commit to feature-branch.
 
-    Using Git CLI
+    Using Git CLI:
 
     Add a new file to the repository, for example:
 
@@ -122,13 +122,13 @@
 
 # Step 6: Push the Feature Branch to GitHub
 
-    Using GitHub Desktop
+    Using GitHub Desktop:
 
     Push Changes:
         
         In GitHub Desktop, click Push origin to push your changes to GitHub.
 
-    Using Git CLI
+    Using Git CLI:
 
     Push the branch to GitHub:
         
@@ -156,7 +156,7 @@
 
 # Step 9: Pull the Changes to Your Local Repository
 
-    Using GitHub Desktop
+    Using GitHub Desktop:
 
     Switch to the main Branch:
     
@@ -166,7 +166,7 @@
         
         Click Repository > Pull to pull the latest changes from GitHub to your local machine.
 
-    Using Git CLI
+    Using Git CLI:
 
         Switch to the main branch:
         
