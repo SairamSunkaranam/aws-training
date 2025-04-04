@@ -158,7 +158,7 @@ Note: Make sure you have installed Docker Desktop.
 containers:
 
         - name: nginx
-        image: nginx:1.21
+          image: nginx:1.21
 
     Apply the updated YAML:
 
