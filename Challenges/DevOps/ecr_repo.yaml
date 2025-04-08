@@ -1,0 +1,16 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "This template will create S3 Buckets, Role and Lambda Function"
+
+Parameters:
+  ECRRepoName:
+    Type: String
+    Description: "Provide the ECS Cluster Name"
+    Default: "2048-new"
+
+Resources: 
+  MyRepository: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: !Ref ECRRepoName
+  

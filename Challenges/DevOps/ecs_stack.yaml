@@ -1,0 +1,159 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  VPCID: 
+    Description: "Select at least two SubNet IDs for the ECS Service and the load-balancer"
+    Type: AWS::EC2::VPC::Id
+    Default: "vpc-02539a54237d83b3b"
+  ECSClusterName:
+    Type: String
+    Description: "Provide the ECS Cluster Name"
+    Default: "Code-Pipeline-ECS-Cluster1"
+  ALBName:
+    Type: String
+    Description: "Provide the ALB Name"
+    Default: "Code-Pipeline-ALB"
+  SubNetIDs: 
+    Description: "Select at least two SubNet IDs for the ECS Service and the load-balancer"
+    Type: List<AWS::EC2::Subnet::Id>
+    Default: "subnet-0d89312375fb1d7a1,subnet-05dbe6254db815951"
+  IMAGETAG:
+    Description: "IMAGE TAG"
+    Type: String
+    Default: "latest"
+
+Resources:
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB Security Group
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+  
+  ECSServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Service Security Group
+      VpcId: !Ref VPCID
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+  InboundRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
+      GroupId: !GetAtt ECSServiceSecurityGroup.GroupId
+
+  # ECS Cluster
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: !Ref ECSClusterName
+
+  # Load Balancer
+  LoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: !Ref ALBName
+      Subnets:
+        - !Select [ 0, !Ref SubNetIDs ]
+        - !Select [ 1, !Ref SubNetIDs ]
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      LoadBalancerAttributes:
+        - Key: 'idle_timeout.timeout_seconds'
+          Value: '60'
+      Scheme: 'internet-facing'
+      Type: 'application'
+
+  # Target Group for the Load Balancer
+  TargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: 'MyTargetGroup'
+      Port: 80
+      Protocol: 'HTTP'
+      VpcId: !Ref VPCID
+      TargetType: ip
+
+  ListenerRule:
+    Type: 'AWS::ElasticLoadBalancingV2::ListenerRule'
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      Conditions:
+      - Field: path-pattern
+        PathPatternConfig:
+          Values:
+            - "/"
+      ListenerArn: !Ref Listener
+      Priority: 1
+
+  Listener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: '80'
+      Protocol: HTTP
+
+  # ECS Task Definition
+  ECSTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: '2048TaskDefinition'
+      ExecutionRoleArn: 'arn:aws:iam::588738614244:role/ecsTaskExecutionRole'
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ContainerDefinitions:
+        - Name: '2048'
+          Image: !Sub '588738614244.dkr.ecr.ap-south-1.amazonaws.com/2048:${IMAGETAG}'
+          Memory: 512
+          PortMappings:
+            - ContainerPort: 80
+
+  # ECS Service
+  ECSService:
+    Type: 'AWS::ECS::Service'
+    DependsOn: [ListenerRule]
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 2
+      LaunchType: FARGATE
+      TaskDefinition: !Ref ECSTaskDefinition
+      SchedulingStrategy: REPLICA
+      LoadBalancers:
+        - TargetGroupArn: !Ref TargetGroup
+          ContainerName: '2048'
+          ContainerPort: 80
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Select [ 0, !Ref SubNetIDs ]
+            - !Select [ 1, !Ref SubNetIDs ]
+          SecurityGroups:
+            - !Ref ECSServiceSecurityGroup
+          AssignPublicIp: 'ENABLED'
+
+Outputs:
+  LoadBalancerDNSName:
+    Description: 'DNS Name of the load balancer'
+    Value: !GetAtt 'LoadBalancer.DNSName'
