@@ -35,7 +35,27 @@
                 
                 Environment:
 
-                    ...
+                    Choose "on-demand" as provisioning model.
+                    Choose "Managed Image" as environment image. 
+                    Choose "EC2" as compute.
+                    Choose "Container" as running mode. 
+                    Operating system -> "Amazon Linux"
+                    Runtime -> Standard
+                    Image -> aws/codebuild/amazonlinux-x86_64-standard:5.0
+
+                    Under Service role:
+
+                        Select "New Service Role" and give it a name. 
+
+                    Scroll down and make sure you check the box of "Privileged"
+                    Select Compute as "3 Gb Memory, 2 vCPUs"
+
+                    Under Environment Variables add below four:
+                        AWS_ACCOUNT_ID: <your account id>
+                        AWS_DEFAULT_REGION: <your current region>
+                        IMAGE_REPO_NAME: <Image Repo Name that you are going to create>
+                        IMAGE_TAG: latest
+
 
                 Service role: Create a new role or choose an existing role with sufficient permissions.
 
@@ -114,3 +134,19 @@
     Review and Create the Pipeline:
         Review all stages and settings.
         Once satisfied, click Create pipeline.
+
+# Step 4: Add additional permissions to the Code Build and Code Pipeline roles. 
+
+    Navigate to Code Build and Code Pipeline and identify the roles that are auto created. 
+
+    Navigate to the IAM:
+
+        For Code Build Role, please attach "AmazonEC2ContainerRegistryFullAccess" policy.
+
+        For Code Pipeline Role, Please attach below roles:
+
+            AmazonECS_FullAccess
+            AmazonS3FullAccess
+            AWSCloudFormationFullAccess
+            AWSCodeDeployFullAccess
+            IAMFullAccess
