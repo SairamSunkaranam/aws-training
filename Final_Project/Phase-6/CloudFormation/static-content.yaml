@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  StaticContentBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'my-static-content-bucket-${AWS::AccountId}-${AWS::Region}'
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - Id: S3StaticContentOrigin
+            DomainName: !GetAtt StaticContentBucket.WebsiteURL
+            S3OriginConfig: {}
+        Enabled: 'true'
+        DefaultRootObject: 'index.html'
+        DefaultCacheBehavior:
+          TargetOriginId: S3StaticContentOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: 
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+
+Outputs:
+  S3BucketName:
+    Description: 'S3 bucket name for static content'
+    Value: !Ref StaticContentBucket
+
+  CloudFrontURL:
+    Description: 'CloudFront URL for serving static content'
+    Value: !GetAtt CloudFrontDistribution.DomainName

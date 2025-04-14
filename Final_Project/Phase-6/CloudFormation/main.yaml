@@ -39,3 +39,8 @@ Resources:
     DependsOn: [ECRStack, RDSStack, SecretsStack]
     Properties:
       TemplateURL: https://s3.amazonaws.com/[bucket]/ecs.yml
+  
+  StaticContentStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/my-cloudformation-bucket/static-content.yml'
