@@ -1,0 +1,183 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CodePipeline with SonarQube, Docker build, ECR push, and CloudFormation deployment
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Description: GitHub account owner
+  GitHubRepo:
+    Type: String
+    Description: GitHub repo name
+  GitHubBranch:
+    Type: String
+    Default: main
+  GitHubToken:
+    Type: String
+    Description: GitHub OAuth token (use SecretsManager or Parameter Store in production)
+  ECRRepoName:
+    Type: String
+    Default: miniblog-app
+
+Resources:
+
+  ### ECR Repository ###
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref ECRRepoName
+
+  ### CodePipeline Service Role ###
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePermissions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - s3:*
+                  - iam:PassRole
+                  - ecr:*
+                  - cloudformation:*
+                Resource: "*"
+
+  ### Artifact Bucket ###
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+
+  ### CodeBuild for SonarQube + Docker + ECR ###
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: miniblog-build
+      Source:
+        Type: CODEPIPELINE
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:6.0
+        PrivilegedMode: true  # Required for Docker
+        EnvironmentVariables:
+          - Name: ECR_REPO
+            Value: !Ref ECRRepository
+      ServiceRole: !GetAtt CodePipelineServiceRole.Arn
+      TimeoutInMinutes: 15
+      BuildSpec: |
+        version: 0.2
+        phases:
+          install:
+            runtime-versions:
+              docker: 20
+              python: 3.11
+            commands:
+              - pip install awscli
+              - echo "Installing SonarScanner..."
+              - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+              - unzip sonar-scanner.zip
+              - export PATH=$PATH:$(pwd)/sonar-scanner-4.7.0.2747-linux/bin
+          build:
+            commands:
+              - echo "Running SonarQube analysis..."
+              - sonar-scanner -Dsonar.projectKey=miniblog -Dsonar.sources=. -Dsonar.host.url=https://<your-sonarqube-host> -Dsonar.login=<SONAR_TOKEN>
+              - echo "Building Docker image..."
+              - IMAGE_TAG=latest
+              - docker build -t $ECR_REPO:$IMAGE_TAG .
+              - $(aws ecr get-login-password | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.<region>.amazonaws.com)
+              - docker push $ECR_REPO:$IMAGE_TAG
+
+  ### CloudFormation Deploy Stage Role ###
+  CloudFormationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CloudFormationPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+
+  ### CodePipeline ###
+  DeploymentPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHubSource
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: '1'
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranch
+                OAuthToken: !Ref GitHubToken
+              OutputArtifacts:
+                - Name: SourceOutput
+
+        - Name: Build
+          Actions:
+            - Name: DockerAndSonarBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+
+        - Name: Deploy
+          Actions:
+            - Name: DeployStack
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                StackName: miniblog-full-stack
+                Capabilities: CAPABILITY_NAMED_IAM
+                TemplatePath: BuildOutput::cloudformation/main.yml
+                RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+
+Outputs:
+  PipelineName:
+    Value: !Ref DeploymentPipeline
+  ECRRepoUri:
+    Value: !GetAtt ECRRepository.RepositoryUri
