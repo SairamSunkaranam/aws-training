@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECR Repo for Flask App
+
+Resources:
+  ECRRepo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: miniblog-app
+
+Outputs:
+  RepositoryUri:
+    Value: !GetAtt ECRRepo.RepositoryUri

@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Full MiniBlog App Stack
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/[bucket]/vpc.yml
+
+  RDSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/[bucket]/rds.yml
+      Parameters:
+        DBUsername: admin
+        DBPassword: mySecureP@ssw0rd
+
+  SecretsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/[bucket]/secrets.yml
+      Parameters:
+        DBUsername: admin
+        DBPassword: mySecureP@ssw0rd
+
+  ECRStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/[bucket]/ecr.yml
+
+  ALBStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/[bucket]/alb.yml
+
+  ECSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [ECRStack, RDSStack, SecretsStack]
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/[bucket]/ecs.yml
