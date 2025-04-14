@@ -130,17 +130,17 @@ Scenario:
         Saves to:
             s3://miniblog-user-images/thumbnails/user-photo_thumb.jpg
 
-    🧼 Optional Enhancements
+🧼 Optional Enhancements
 
-        ✅ Restrict accepted file types & size in Lambda
-        ✅ Add metrics/logs using CloudWatch
-        ✅ Use SNS to notify users when processing is complete
+    ✅ Restrict accepted file types & size in Lambda
+    ✅ Add metrics/logs using CloudWatch
+    ✅ Use SNS to notify users when processing is complete
 
 
-    📦 Summary
+📦 Summary
 
-        S3	Store original and processed images
-        SQS	Decouple upload event from processing
-        Lambda	Generate image thumbnails on upload
-        IAM Role	Grants Lambda access to S3 & SQS
-        Pillow	Python lib used to manipulate images
+    S3	Store original and processed images
+    SQS	Decouple upload event from processing
+    Lambda	Generate image thumbnails on upload
+    IAM Role	Grants Lambda access to S3 & SQS
+    Pillow	Python lib used to manipulate images
