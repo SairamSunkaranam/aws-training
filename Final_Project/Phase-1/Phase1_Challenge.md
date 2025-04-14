@@ -1,12 +1,15 @@
 🚀 Phase 1: Deploy MiniBlog on EC2 in Private Subnets with ASG & Load Balancer
 
 🗂️ Overview of What We'll Build
+
     VPC with 2 public and 2 private subnets (across 2 AZs)
     EC2 Instances (Flask app) in private subnets
     Application Load Balancer (ALB) in public subnets
     Auto Scaling Group (ASG) behind ALB
     Launch Template with user-data to install & run the Flask app
     CloudWatch Alarm to scale based on CPU
+
+
 
 ✅ STEP-BY-STEP SETUP Instructions
 
@@ -125,7 +128,6 @@
 
 ✅ Summary of Resources Created
 
-    Resource	Purpose
     VPC	Isolated network
     Public/Private Subnets	Network segmentation
     ALB	Expose app to internet
