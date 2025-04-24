@@ -13,13 +13,15 @@ First, we need to get the AMI of the latest version of WordPress. These AMIs are
 
 Scroll down to the region you’re using, and copy the AMI ID
 
-Untitled
+[Untitled](https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled.png)![image](https://github.com/user-attachments/assets/140abe4c-b4d3-46ef-8241-051ba2146acc)
+
 
 Head to the EC2 console: https://ap-southeast-4.console.aws.amazon.com/ec2/home
 
 Go to Instances and click Launch instances
 
-Untitled
+[Untitled](https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled%201.png)![image](https://github.com/user-attachments/assets/691d3425-8d5a-4afc-8f81-a9ca62e41ba4)
+
 
 Set the Name to “wordpress”
 
@@ -27,7 +29,8 @@ Under Application and OS Images (Amazon Machine Image) enter the AMI you copied 
 
 In the window that pops up, go to the Community AMIs tab, and click Select next to the AMI result
 
-Untitled
+[Untitled](https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled%202.png)![image](https://github.com/user-attachments/assets/121b4f08-e983-42c1-aa01-262661e53281)
+
 
 Leave the Instance type as default (it should be t2.micro or t3.micro, which is free tier eligible)
 
@@ -35,11 +38,13 @@ Set the Key pair (login) to “Proceed without a key pair (Not recommended)”. 
 
 Under Network settings, click Edit
 
-Untitled
+[Untitled](https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled%203.png)![image](https://github.com/user-attachments/assets/85bf7fab-bdd0-4df3-a388-b40ceabed87e)
+
 
 We’re going to use the default VPC, so you just need to make sure that is the VPC selected, and Auto-assign public IP is enabled
 
-Untitled
+[Untitled](https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled%204.png)![image](https://github.com/user-attachments/assets/074c977e-0c97-4fc7-abee-f6c0066930d4)
+
 
 Under Firewall (security groups), leave “Create security group” selected, and change the Security group name to “wordpress-waf”
 
