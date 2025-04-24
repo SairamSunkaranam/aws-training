@@ -16,7 +16,8 @@ First, we need to get the AMI of the latest version of WordPress. These AMIs are
 
 Scroll down to the region you’re using, and copy the AMI ID
 
-![Untitled](images/Untitled.png)
+<img width="1148" alt="image" src="https://github.com/user-attachments/assets/0241d4d9-a84f-4d03-9845-7ae671f97646" />
+
 
 Head to the EC2 console: [https://ap-south-1.console.aws.amazon.com/ec2/home](https://ap-south-1.console.aws.amazon.com/ec2/home)
 
