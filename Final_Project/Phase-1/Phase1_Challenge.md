@@ -1,12 +1,12 @@
-🚀 Phase 1: Deploy MiniBlog on EC2 in Private Subnets with ASG & Load Balancer
+🚀 Phase 1: Deploy Wordpress on EC2 in Private Subnets with ASG & Load Balancer
 
 🗂️ Overview of What We'll Build
 
-    VPC with 2 public and 2 private subnets (across 2 AZs)
-    EC2 Instances (Flask app) in private subnets
+    VPC with 2 public subnets
+    EC2 Instances (Wordpress app) in public subnets
     Application Load Balancer (ALB) in public subnets
     Auto Scaling Group (ASG) behind ALB
-    Launch Template with user-data to install & run the Flask app
+    Launch Template with user-data to install & run the Wordpress app
     CloudWatch Alarm to scale based on CPU
 
 
@@ -19,7 +19,7 @@
 
         Go to VPC Dashboard > Create VPC
         
-        Name: MiniBlogVPC
+        Name: WordPressVPC
         CIDR: 10.0.0.0/16
 
         Create 2 public subnets:    
@@ -30,12 +30,12 @@
         Create 2 private subnets:
 
             Example: 10.0.3.0/24 and 10.0.4.0/24
-            Create Internet Gateway and attach it to VPC
+        
+        Create Internet Gateway and attach it to VPC
 
         Route Table setup:
 
             Public Subnet → Route to Internet Gateway
-            Private Subnet → NAT Gateway or instance (if needed for outbound internet access)
 
     ⚙️ 2. Create Security Groups
 
@@ -44,7 +44,7 @@
             Inbound: HTTP (80) from anywhere
             Outbound: All traffic
 
-        EC2 SG (Private instances):
+        EC2 SG (Public instances) and restricted from ALB:
 
             Inbound: HTTP (80) from ALB SG
             Outbound: All traffic
@@ -55,27 +55,57 @@
 
         Template Settings:
             AMI: Amazon Linux 2
-            Instance Type: t2.micro (for test)
+            Instance Type: t2.micro (for free tier)
             Key pair: (Optional)
             Network: Leave default
-            Security Group: EC2 SG
+            Security Group: Select EC2 SG
             IAM Role: (Optional, if using S3 or logs)
 
         📜 User Data Script (paste into "Advanced Details"):
 
-            #!/bin/bash
-            yum update -y
-            yum install python3 git -y
-            pip3 install flask
+            #!/bin/bash -xe
 
-            # Clone the repo or use a zip with your code
-            cd /home/ec2-user
-            git clone https://github.com/yourusername/miniblog.git
-            cd miniblog
+            DBName='a4lwordpress'
+            DBUser='a4lwordpress'
+            DBPassword='4n1m4l$4L1f3'
+            DBRootPassword='4n1m4l$4L1f3'
 
-            # Run app (basic example — you may want to daemonize or use gunicorn + systemd)
-            nohup python3 app.py --host=0.0.0.0 &
-            🔁 Replace the git clone URL with your repo OR use aws s3 cp if you zip the code and upload to S3.
+            dnf -y update
+
+            dnf install wget php-mysqlnd httpd php-fpm php-mysqli mariadb105-server php-json php php-devel stress -y
+
+            systemctl enable httpd
+            systemctl enable mariadb
+            systemctl start httpd
+            systemctl start mariadb
+
+            mysqladmin -u root password $DBRootPassword
+
+            wget http://wordpress.org/latest.tar.gz -P /var/www/html
+            cd /var/www/html
+            tar -zxvf latest.tar.gz
+            cp -rvf wordpress/* .
+            rm -R wordpress
+            rm latest.tar.gz
+
+            sudo cp ./wp-config-sample.php ./wp-config.php
+            sed -i "s/'database_name_here'/'$DBName'/g" wp-config.php
+            sed -i "s/'username_here'/'$DBUser'/g" wp-config.php
+            sed -i "s/'password_here'/'$DBPassword'/g" wp-config.php
+            sed -i "s/'localhost'/'$DBEndpoint'/g" wp-config.php
+
+            usermod -a -G apache ec2-user   
+            chown -R ec2-user:apache /var/www
+            chmod 2775 /var/www
+            find /var/www -type d -exec chmod 2775 {} \;
+            find /var/www -type f -exec chmod 0664 {} \;
+
+            echo "CREATE DATABASE $DBName;" >> /tmp/db.setup
+            echo "CREATE USER '$DBUser'@'localhost' IDENTIFIED BY '$DBPassword';" >> /tmp/db.setup
+            echo "GRANT ALL ON $DBName.* TO '$DBUser'@'localhost';" >> /tmp/db.setup
+            echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
+            mysql -u root --password=$DBRootPassword < /tmp/db.setup
+            rm /tmp/db.setup
 
 
     ⚖️ 4. Create Target Group
@@ -84,17 +114,22 @@
 
             Type: Instance
             Protocol: HTTP (port 80)
-            VPC: MiniBlogVPC
+            Name: Wordpress-TG
+            VPC: WordPressVPC
             Health check path: /
+            Advacned Health Check Settings:
+                Set the Success codes to 200-399s
 
     🌐 5. Create Application Load Balancer (ALB)
     
         Go to EC2 > Load Balancers > Create ALB:
 
-            Scheme: Internet-facing
             Type: Application Load Balancer
-            Listeners: HTTP 80
+            Scheme: Internet-facing
+            Name: wordpress-alb
+            VPC: WordpressVPC
             AZs: Use 2 public subnets
+            Listeners: HTTP 80
             Security Group: ALB SG
 
         Forwarding Rules:
@@ -105,10 +140,11 @@
 
         Go to EC2 > Auto Scaling Groups > Create:
 
+            Name: wordpress-asg
             Launch Template: Use the one we created
-            VPC: MiniBlogVPC
-            Subnets: Select private subnets
-            Target Group: Attach to the ALB's Target Group
+            VPC: WordPressVPC
+            Subnets: Select two public subnets
+            LoadBalancing: Select existing load-balancer and choose wordpress-tg (target group)
             Min/Max/Desired: e.g., 1/4/1
 
     📈 7. Auto Scaling Policy (CPU Based)
@@ -120,16 +156,16 @@
             Cooldown: 300 seconds
             Optionally: Add a scale-in policy too
 
-    🧪 8. Test Everything
+    🧪 8. Configure Wordpress
 
-        Visit ALB DNS name (public) in browser — it should load the MiniBlog app.
+        Visit ALB DNS name (public) in browser — it should load the WordPress app. Install the wordpress with the details.
         Try creating a post and see if it persists.
-        Simulate load with stress or similar to test scaling.
+        Simulate load with stress or similar to test scaling. (Optional)
 
 ✅ Summary of Resources Created
 
     VPC	Isolated network
-    Public/Private Subnets	Network segmentation
+    Public Subnets	Network segmentation
     ALB	Expose app to internet
     EC2 SG	Controls access to app
     Launch Template	Automate EC2 setup
