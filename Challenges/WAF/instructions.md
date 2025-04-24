@@ -13,7 +13,7 @@ First, we need to get the AMI of the latest version of WordPress. These AMIs are
 
 Scroll down to the region you’re using, and copy the AMI ID
 
-[Untitled](https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled.png)![image](https://github.com/user-attachments/assets/140abe4c-b4d3-46ef-8241-051ba2146acc)
+(https://github.com/acantril/learn-cantrill-io-labs/blob/master/aws-waf/images/Untitled.png)![image](https://github.com/user-attachments/assets/140abe4c-b4d3-46ef-8241-051ba2146acc)
 
 
 Head to the EC2 console: https://ap-southeast-4.console.aws.amazon.com/ec2/home
