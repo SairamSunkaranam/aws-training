@@ -6,7 +6,7 @@ We’re going to be creating an EC2 instance running WordPress, we’ll put an A
 
 We’ll then explore the different rules and actions we can configure, as well as setting up WAF logging to S3 and viewing those logs.
 
-We will be creating this environment in the ap-southeast-4 (Melbourne) region, so all links to the console will be there. Make sure you change region if you’re deploying elsewhere.
+We will be creating this environment in the ap-south-1 (Melbourne) region, so all links to the console will be there. Make sure you change region if you’re deploying elsewhere.
 
 # Instructions
 
@@ -18,7 +18,7 @@ Scroll down to the region you’re using, and copy the AMI ID
 
 ![Untitled](images/Untitled.png)
 
-Head to the EC2 console: [https://ap-southeast-4.console.aws.amazon.com/ec2/home](https://ap-southeast-4.console.aws.amazon.com/ec2/home)
+Head to the EC2 console: [https://ap-south-1.console.aws.amazon.com/ec2/home](https://ap-south-1.console.aws.amazon.com/ec2/home)
 
 Go to **Instances** and click <kbd>Launch instances</kbd>
 
@@ -52,7 +52,7 @@ Under **Security group rule 1**, change the **Type** to HTTP
 
 Leave everything else as default, and click <kbd>Launch instance</kbd>
 
-Once that’s done, head back to the EC2 console: [https://ap-southeast-4.console.aws.amazon.com/ec2/home](https://ap-southeast-4.console.aws.amazon.com/ec2/home)
+Once that’s done, head back to the EC2 console: [https://ap-south-1.console.aws.amazon.com/ec2/home](https://ap-south-1.console.aws.amazon.com/ec2/home)
 
 Go to **Instances**, and copy the public IPv4 address of your new instance
 
@@ -64,7 +64,7 @@ Visit that IP in your browser, and you should see the default WordPress home pag
 
 ## Stage 2 - Creating a target group
 
-Head to the EC2 console: [https://ap-southeast-4.console.aws.amazon.com/ec2/home](https://ap-southeast-4.console.aws.amazon.com/ec2/home)
+Head to the EC2 console: [https://ap-south-1.console.aws.amazon.com/ec2/home](https://ap-south-1.console.aws.amazon.com/ec2/home)
 
 Go to **Target Groups** and click <kbd>Create target group</kbd>
 
@@ -86,7 +86,7 @@ Click <kbd>Create target group</kbd>
 
 ## Stage 3 - Creating a application load balancer
 
-Head to the EC2 console: [https://ap-southeast-4.console.aws.amazon.com/ec2/home](https://ap-southeast-4.console.aws.amazon.com/ec2/home)
+Head to the EC2 console: [https://ap-south-1.console.aws.amazon.com/ec2/home](https://ap-south-1.console.aws.amazon.com/ec2/home)
 
 Go to **Load Balancers** and click <kbd>Create load balancer</kbd>
 
@@ -266,7 +266,7 @@ Click <kbd>Save</kbd>
 
 ## Stage 5 - Testing our WAF
 
-Open your ALB URL in a new tab (this will be something like [http://wordpress-lb-1275728828.ap-southeast-4.elb.amazonaws.com/](http://wordpress-lb-1275728828.ap-southeast-4.elb.amazonaws.com/) that we visited earlier).
+Open your ALB URL in a new tab (this will be something like [http://wordpress-lb-1275728828.ap-south-1.elb.amazonaws.com/](http://wordpress-lb-1275728828.ap-south-1.elb.amazonaws.com/) that we visited earlier).
 
 Your WordPress homepage should still be viewable. You can visit the sample blog entry (`/sample-page/`), and the admin login (`/wp-admin`)
 
@@ -490,7 +490,7 @@ Here’s an example of one of my log entries, the `action` is “ALLOW”, and t
 {
     "timestamp": 1680696799239,
     "formatVersion": 1,
-    "webaclId": "arn:aws:wafv2:ap-southeast-4:123456789012:regional/webacl/wordpress-acl/1be732ad-bf31-44d9-8745-4da02eeaac18",
+    "webaclId": "arn:aws:wafv2:ap-south-1:123456789012:regional/webacl/wordpress-acl/1be732ad-bf31-44d9-8745-4da02eeaac18",
     "terminatingRuleId": "allow-home",
     "terminatingRuleType": "REGULAR",
     "action": "ALLOW",
@@ -508,7 +508,7 @@ Here’s an example of one of my log entries, the `action` is “ALLOW”, and t
         "headers": [
             {
                 "name": "Host",
-                "value": "wordpress-lb-1275728828.ap-southeast-4.elb.amazonaws.com"
+                "value": "wordpress-lb-1275728828.ap-south-1.elb.amazonaws.com"
             },
             {
                 "name": "Connection",
@@ -558,7 +558,7 @@ Below that, we can see the Pingdom request from German that was blocked by our �
 {
     "timestamp": 1680696828189,
     "formatVersion": 1,
-    "webaclId": "arn:aws:wafv2:ap-southeast-4:123456789012:regional/webacl/wordpress-acl/1be732ad-bf31-44d9-8745-4da02eeaac18",
+    "webaclId": "arn:aws:wafv2:ap-south-1:123456789012:regional/webacl/wordpress-acl/1be732ad-bf31-44d9-8745-4da02eeaac18",
     "terminatingRuleId": "block-earth",
     "terminatingRuleType": "REGULAR",
     "action": "BLOCK",
@@ -576,7 +576,7 @@ Below that, we can see the Pingdom request from German that was blocked by our �
         "headers": [
             {
                 "name": "Host",
-                "value": "wordpress-lb-1275728828.ap-southeast-4.elb.amazonaws.com"
+                "value": "wordpress-lb-1275728828.ap-south-1.elb.amazonaws.com"
             },
             {
                 "name": "Connection",
@@ -600,7 +600,7 @@ Below that, we can see the Pingdom request from German that was blocked by our �
             },
             {
                 "name": "Referer",
-                "value": "http://wordpress-lb-1275728828.ap-southeast-4.elb.amazonaws.com/"
+                "value": "http://wordpress-lb-1275728828.ap-south-1.elb.amazonaws.com/"
             },
             {
                 "name": "Accept-Encoding",
@@ -739,7 +739,7 @@ Go to **Buckets** and select your `aws-waf-logs-` bucket, and click <kbd>Delete<
 
 In the confirmation window, enter your bucket name and click <kbd>Delete</kbd>
 
-Head to the EC2 console: [https://ap-southeast-4.console.aws.amazon.com/ec2](https://ap-southeast-4.console.aws.amazon.com/ec2)
+Head to the EC2 console: [https://ap-south-1.console.aws.amazon.com/ec2](https://ap-south-1.console.aws.amazon.com/ec2)
 
 Go to **Load Balancers**, select your `wordpress-lb` ALB, click <kbd>Actions</kbd> then <kbd>Delete load balancer</kbd>
 
