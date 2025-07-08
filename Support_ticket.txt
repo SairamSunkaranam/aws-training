@@ -1,0 +1,42 @@
+1. Sign in to your AWS account
+
+  Go to https://aws.amazon.com/support
+  Sign in with your root or IAM user credentials.
+
+
+2. Go to AWS Support Center
+
+  Click this link: https://console.aws.amazon.com/support/home#/
+
+
+3. Create a New Case
+
+  Click the button “Create case”
+
+
+4. Fill the case form:
+
+  Choose the following options:
+
+    Field	Selection / Input
+    Create case for	Account and billing support
+    Service	Billing
+    Category	Billing or Free Tier
+    Subject	e.g., "Request for Billing Adjustment due to Unused Resources"
+    Description	See sample message below 👇
+    Severity	General guidance is fine
+    Preferred contact	Choose Web or Email
+
+
+    📄 Sample Request Message to Submit (you can copy this):
+    Subject: Request to Remove Bill Due to Unused Resources in Free Tier
+    Message:
+    Hello AWS Support,
+    I am a new user exploring AWS services under the Free Tier. I recently found that I had mistakenly left some resources (e.g., EC2, RDS, or other services) running, which caused unexpected charges on my account.
+    I was not aware that these resources were still active and accumulating charges. As a student/new user still learning AWS, I kindly request a one-time billing adjustment or credit for this usage.
+    I have since stopped or terminated the resources and ensured that my account is no longer incurring charges.
+    I would really appreciate your support and understanding in resolving this issue.
+    Thank you very much.
+    5. Submit the ticket
+
+Click “Submit” and you should receive a confirmation email from AWS Support.
